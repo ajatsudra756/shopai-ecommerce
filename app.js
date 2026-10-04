@@ -263,7 +263,7 @@
     return `
       <article class="product-card" data-id="${p.id}">
         <div class="pc-media" data-detail="${p.id}">
-          <img src="${p.image}" alt="${esc(p.name)}" loading="lazy" />
+          <img src="${p.image}" alt="${esc(p.name)}" loading="lazy" data-fb="${p.fallback}" onerror="if(this.src!==this.dataset.fb){this.src=this.dataset.fb}" />
           ${p.promo ? `<span class="pc-promo">${esc(p.promo)}</span>` : ""}
           ${disc > 0 ? `<span class="pc-disc">-${disc}%</span>` : ""}
         </div>
@@ -321,7 +321,7 @@
     $("#aiGallery").innerHTML = AI_FEATURED.map((f, i) =>
       `<div class="ai-card" data-ai="${i}">
         <span class="ai-tag">✨ AI</span>
-        <img src="${f.image}" alt="${esc(f.title)}" />
+        <img src="${f.image}" alt="${esc(f.title)}" loading="lazy" data-fb="${f.fallback}" onerror="if(this.src!==this.dataset.fb){this.src=this.dataset.fb}" />
       </div>`
     ).join("");
     $("#aiGallery").addEventListener("click", (e) => {
@@ -346,16 +346,18 @@
     const disc = p.oldPrice ? Math.round((1 - p.price / p.oldPrice) * 100) : 0;
     const cat = CATEGORIES.find((c) => c.id === p.cat);
 
-    // Build 3 gallery angles reusing the generated image + category variants
-    const thumbs = [p.image,
-      window.SHOPAI_DATA.makeImage(p.emoji, p.cat, "Detail"),
-      window.SHOPAI_DATA.makeImage("📸", p.cat, "Foto AI")];
+    // Galeri detail: foto produk asli + 2 variasi (foto kategori terkait sebagai angle tambahan)
+    const related = PRODUCTS.filter((x) => x.cat === p.cat && x.id !== p.id).slice(0, 2);
+    const thumbs = [p.image, ...related.map((x) => x.image)];
+    while (thumbs.length < 3) thumbs.push(p.image);
+    const fb = p.fallback;
+    const onerr = `onerror="if(this.src!==this.dataset.fb){this.src=this.dataset.fb}"`;
 
     $("#detailBody").innerHTML = `
       <div class="detail-gallery">
-        <div class="detail-main-img"><img id="detailMainImg" src="${p.image}" alt="${esc(p.name)}" /></div>
+        <div class="detail-main-img"><img id="detailMainImg" src="${p.image}" alt="${esc(p.name)}" data-fb="${fb}" ${onerr} /></div>
         <div class="detail-thumbs">
-          ${thumbs.map((t, i) => `<img src="${t}" class="${i === 0 ? "active" : ""}" data-thumb="${i}" alt="angle ${i + 1}" />`).join("")}
+          ${thumbs.map((t, i) => `<img src="${t}" class="${i === 0 ? "active" : ""}" data-thumb="${i}" alt="angle ${i + 1}" data-fb="${fb}" ${onerr} />`).join("")}
         </div>
       </div>
       <div class="detail-info">
@@ -509,7 +511,7 @@
       const p = byId(item.id);
       return `
       <div class="cart-item" data-id="${p.id}">
-        <img src="${p.image}" alt="${esc(p.name)}" />
+        <img src="${p.image}" alt="${esc(p.name)}" data-fb="${p.fallback}" onerror="if(this.src!==this.dataset.fb){this.src=this.dataset.fb}" />
         <div class="cart-item-info">
           <div class="cart-item-name">${esc(p.name)}</div>
           <div class="cart-item-price">${rupiah(p.price)}</div>
@@ -791,7 +793,7 @@
 
   function miniProductHtml(p) {
     return `<div class="mini-product" data-pid="${p.id}">
-      <img src="${p.image}" alt="" />
+      <img src="${p.image}" alt="" data-fb="${p.fallback}" onerror="if(this.src!==this.dataset.fb){this.src=this.dataset.fb}" />
       <div><div class="mp-name">${esc(p.name)}</div><div class="mp-price">${rupiah(p.price)} • ⭐${p.rating.toFixed(1)}</div></div>
     </div>`;
   }

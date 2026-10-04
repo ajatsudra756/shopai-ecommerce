@@ -416,17 +416,25 @@
     },
   ];
 
-  // Generate gambar untuk setiap produk
+  // ---- Foto produk ASLI (disimpan lokal di assets/products, bukan vektor) ----
+  // Foto diunduh dari Unsplash dan disimpan lokal agar andal (tanpa rate-limit,
+  // bekerja offline, dan konsisten saat di-deploy ke Vercel).
+  // Jika sebuah foto gagal dimuat, otomatis beralih ke SVG fallback (lihat onerror di app.js).
   PRODUCTS.forEach((p) => {
-    p.image = makeImage(p.emoji, p.cat, p.name.split(" ").slice(0, 2).join(" "));
+    p.fallback = makeImage(p.emoji, p.cat, p.name.split(" ").slice(0, 2).join(" "));
+    p.image = `assets/products/${p.id}.jpg`;
   });
 
-  // 3 Foto produk unggulan "AI" untuk hero gallery
+  // 3 Foto unggulan ASLI untuk hero gallery
   const AI_FEATURED = [
     { title: "Koleksi Gadget Premium", emoji: "📱", cat: "gadget", sub: "Dikurasi oleh AI" },
     { title: "Audio Experience", emoji: "🎧", cat: "electronics", sub: "Rekomendasi teratas" },
     { title: "Glow & Beauty", emoji: "✨", cat: "beauty", sub: "Favorit pembeli" },
-  ].map((f) => ({ ...f, image: makeImage(f.emoji, f.cat, f.title) }));
+  ].map((f, i) => ({
+    ...f,
+    image: `assets/products/feat${i}.jpg`,
+    fallback: makeImage(f.emoji, f.cat, f.title),
+  }));
 
   // Voucher yang tersedia
   const VOUCHERS = {
