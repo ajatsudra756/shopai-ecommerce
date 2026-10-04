@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="ShopAI — E-Commerce Interaktif dengan rekomendasi AI, keranjang, checkout, dan chat asisten belanja." />
+  <title>ShopAI — E-Commerce Interaktif</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛍️</text></svg>" />
+</head>
+<body>
+  <!-- ========== AUTH SCREEN ========== -->
+  <div id="authScreen" class="auth-screen">
+    <div class="auth-bg"></div>
+    <div class="auth-card">
+      <div class="auth-brand">
+        <span class="auth-logo">🛍️</span>
+        <h1>Shop<span>AI</span></h1>
+        <p class="auth-tagline">E-Commerce Interaktif bertenaga AI</p>
+      </div>
+
+      <div class="auth-tabs">
+        <button class="auth-tab active" data-tab="login">Masuk</button>
+        <button class="auth-tab" data-tab="register">Daftar</button>
+      </div>
+
+      <form id="authForm" class="auth-form" autocomplete="off">
+        <div class="field" id="nameField" hidden>
+          <label for="authName">Nama Lengkap</label>
+          <input type="text" id="authName" placeholder="Nama kamu" />
+        </div>
+        <div class="field">
+          <label for="authEmail">Email</label>
+          <input type="email" id="authEmail" placeholder="kamu@email.com" required />
+        </div>
+        <div class="field">
+          <label for="authPassword">Password</label>
+          <input type="password" id="authPassword" placeholder="••••••••" minlength="4" required />
+        </div>
+        <p class="auth-error" id="authError"></p>
+        <button type="submit" class="btn btn-primary btn-block" id="authSubmit">Masuk</button>
+      </form>
+
+      <div class="auth-divider"><span>atau</span></div>
+      <button class="btn btn-ghost btn-block" id="guestBtn">Lanjut sebagai Tamu</button>
+      <p class="auth-hint">Simulasi autentikasi — data disimpan di perangkat kamu.</p>
+    </div>
+  </div>
+
+  <!-- ========== APP SHELL ========== -->
+  <div id="app" class="app" hidden>
+    <!-- Header -->
+    <header class="header">
+      <div class="header-inner">
+        <button class="brand" id="homeBtn">
+          <span class="brand-logo">🛍️</span>
+          <span class="brand-name">Shop<span>AI</span></span>
+        </button>
+
+        <div class="search-wrap">
+          <input type="search" id="searchInput" class="search-input" placeholder="Cari produk, brand, atau kategori..." />
+          <button class="search-btn" id="searchBtn" aria-label="Cari">🔍</button>
+        </div>
+
+        <div class="header-actions">
+          <button class="icon-btn" id="chatToggle" title="Chat ShopAI">
+            💬<span class="icon-label">Chat</span>
+          </button>
+          <button class="icon-btn cart-btn" id="cartBtn" title="Keranjang">
+            🛒<span class="icon-label">Keranjang</span>
+            <span class="cart-badge" id="cartBadge" hidden>0</span>
+          </button>
+          <div class="user-menu">
+            <button class="user-chip" id="userChip">
+              <span class="user-avatar" id="userAvatar">U</span>
+              <span class="user-name" id="userName">User</span>
+            </button>
+            <div class="user-dropdown" id="userDropdown" hidden>
+              <button data-action="dashboard">📊 Dashboard</button>
+              <button data-action="orders">📦 Pesanan Saya</button>
+              <button data-action="logout">🚪 Keluar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main -->
+    <main class="main">
+      <!-- Hero / AI featured -->
+      <section class="hero" id="heroSection">
+        <div class="hero-text">
+          <span class="hero-badge">✨ Didukung AI</span>
+          <h2>Belanja lebih cerdas bersama <span>ShopAI</span></h2>
+          <p>Temukan produk unggulan, dapatkan rekomendasi personal, dan checkout dalam hitungan detik.</p>
+          <button class="btn btn-primary" id="heroShopBtn">Mulai Belanja</button>
+        </div>
+        <div class="hero-gallery" id="aiGallery">
+          <!-- AI featured images injected -->
+        </div>
+      </section>
+
+      <!-- Category navigation (dipindah ke bawah hero / tombol Mulai Belanja) -->
+      <section class="section category-section" id="categorySection">
+        <div class="section-head">
+          <h3>🗂️ Kategori Produk</h3>
+          <span class="section-sub">Pilih kategori untuk memfilter</span>
+        </div>
+        <nav class="categories" id="categoryNav"></nav>
+      </section>
+
+      <!-- AI Recommendations -->
+      <section class="section" id="recoSection">
+        <div class="section-head">
+          <h3>🤖 Rekomendasi untukmu</h3>
+          <span class="section-sub" id="recoSub">Berdasarkan preferensimu</span>
+        </div>
+        <div class="reco-rail" id="recoRail"></div>
+      </section>
+
+      <!-- Filters + Grid -->
+      <section class="section">
+        <div class="section-head">
+          <h3 id="gridTitle">Semua Produk</h3>
+          <div class="sort-wrap">
+            <label for="sortSelect">Urutkan</label>
+            <select id="sortSelect">
+              <option value="relevan">Paling Relevan</option>
+              <option value="terlaris">Terlaris</option>
+              <option value="termurah">Harga Termurah</option>
+              <option value="termahal">Harga Tertinggi</option>
+              <option value="rating">Rating Tertinggi</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="shop-layout">
+          <aside class="filters" id="filterPanel">
+            <div class="filter-group">
+              <h4>Kategori</h4>
+              <div id="catFilters"></div>
+            </div>
+            <div class="filter-group">
+              <h4>Rentang Harga</h4>
+              <div class="price-range">
+                <input type="number" id="priceMin" placeholder="Min" min="0" />
+                <span>—</span>
+                <input type="number" id="priceMax" placeholder="Max" min="0" />
+              </div>
+              <div class="price-chips" id="priceChips"></div>
+            </div>
+            <div class="filter-group">
+              <h4>Rating Minimal</h4>
+              <div class="rating-filter" id="ratingFilter"></div>
+            </div>
+            <button class="btn btn-ghost btn-block" id="resetFilters">Reset Filter</button>
+          </aside>
+
+          <div class="grid-wrap">
+            <div class="active-chips" id="activeChips"></div>
+            <div class="product-grid" id="productGrid"></div>
+            <div class="empty-state" id="emptyState" hidden>
+              <span>🔍</span>
+              <p>Produk tidak ditemukan. Coba kata kunci atau filter lain.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <p>🛍️ <strong>ShopAI</strong> — demo e-commerce interaktif. Dibuat sebagai simulasi UI/UX.</p>
+    </footer>
+  </div>
+
+  <!-- ========== MODAL: PRODUCT DETAIL ========== -->
+  <div class="modal" id="productModal" hidden>
+    <div class="modal-backdrop" data-close></div>
+    <div class="modal-panel product-detail" role="dialog" aria-modal="true">
+      <button class="modal-close" data-close aria-label="Tutup">✕</button>
+      <div class="detail-body" id="detailBody"></div>
+    </div>
+  </div>
+
+  <!-- ========== DRAWER: CART ========== -->
+  <div class="drawer" id="cartDrawer" hidden>
+    <div class="drawer-backdrop" data-close-cart></div>
+    <aside class="drawer-panel" role="dialog" aria-modal="true">
+      <div class="drawer-head">
+        <h3>🛒 Keranjang Belanja</h3>
+        <button class="modal-close" data-close-cart aria-label="Tutup">✕</button>
+      </div>
+      <div class="cart-items" id="cartItems"></div>
+      <div class="cart-summary" id="cartSummary"></div>
+    </aside>
+  </div>
+
+  <!-- ========== MODAL: CHECKOUT ========== -->
+  <div class="modal" id="checkoutModal" hidden>
+    <div class="modal-backdrop" data-close-checkout></div>
+    <div class="modal-panel checkout-panel" role="dialog" aria-modal="true">
+      <button class="modal-close" data-close-checkout aria-label="Tutup">✕</button>
+      <div id="checkoutBody"></div>
+    </div>
+  </div>
+
+  <!-- ========== CHAT FAB (floating button) ========== -->
+  <button class="chat-fab" id="chatFab" title="Chat ShopAI" aria-label="Buka chat">
+    <span class="chat-fab-icon">💬</span>
+  </button>
+
+  <!-- ========== CHAT WIDGET ========== -->
+  <div class="chat-widget" id="chatWidget" hidden>
+    <div class="chat-head">
+      <div class="chat-head-title">
+        <span class="chat-avatar">🤖</span>
+        <div>
+          <strong>Chat ShopAI</strong>
+          <small>Asisten belanja • online</small>
+        </div>
+      </div>
+      <button class="modal-close" id="chatClose" aria-label="Tutup">✕</button>
+    </div>
+    <div class="chat-body" id="chatBody"></div>
+    <div class="chat-suggestions" id="chatSuggestions"></div>
+    <form class="chat-input-wrap" id="chatForm">
+      <input type="text" id="chatInput" placeholder="Tanya apa saja soal belanja..." autocomplete="off" />
+      <button type="submit" class="chat-send" aria-label="Kirim">➤</button>
+    </form>
+  </div>
+
+  <!-- ========== TOAST ========== -->
+  <div class="toast-stack" id="toastStack"></div>
+
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
